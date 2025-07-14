@@ -65,7 +65,7 @@
 </head>
 <body>
   <div class="container py-5">
-    <h2 class="text-center mb-4">📍 Ubicación en Tiempo Real + Control Relay</h2>
+    <h2 class="text-center mb-4">OkakoroTraker</h2>
     <div id="map"></div>
 
     <div class="info-box text-center">
@@ -75,7 +75,7 @@
     </div>
 
     <div class="text-center mt-4">
-      <h5>Estado del Relay:</h5>
+      <h5>Corriente:</h5>
       <label class="switch">
         <input type="checkbox" id="relaySwitch" onchange="toggleRelay()">
         <span class="slider"></span>
@@ -87,8 +87,8 @@
 
     <div class="text-center mt-4">
       <h5>Cómo llegar:</h5>
-        <button type="button" class="btn btn-success" id="googleMapsLink" target="_blank">📍 Google Maps</button>
-        <button type="button" class="btn btn-info" id="wazeLink" target="_blank">🚗 Waze</button>
+        <a id="googleMapsLink" class="btn btn-primary me-2" target="_blank">📍 Google Maps</a>
+        <a id="wazeLink" class="btn btn-info text-white" target="_blank">🚗 Waze</a>
 
     </div>
   </div>
