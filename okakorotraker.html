@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>OKAKORO</title>
+  <title>OKAKORO TRAKER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -65,7 +65,7 @@
 </head>
 <body>
   <div class="container py-5">
-    <h2 class="text-center mb-4">OkakoroTraker</h2>
+    <!--<h2 class="text-center mb-4"></h2-->>
     <div id="map"></div>
 
     <div class="info-box text-center">
@@ -75,7 +75,7 @@
     </div>
 
     <div class="text-center mt-4">
-      <h5>Corriente:</h5>
+      <h5>Estado del Relay:</h5>
       <label class="switch">
         <input type="checkbox" id="relaySwitch" onchange="toggleRelay()">
         <span class="slider"></span>
@@ -87,39 +87,34 @@
 
     <div class="text-center mt-4">
       <h5>Cómo llegar:</h5>
-        <a id="googleMapsLink" class="btn btn-primary me-2" target="_blank">📍 Google Maps</a>
-        <a id="wazeLink" class="btn btn-info text-white" target="_blank">🚗 Waze</a>
-
+      <a id="googleMapsLink" class="btn btn-primary me-2" target="_blank">📍 Google Maps</a>
+      <a id="wazeLink" class="btn btn-info text-white" target="_blank">🚗 Waze</a>
     </div>
   </div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <!-- Google Maps API -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBukTLs8YHWCtf6lZuLixcFi5T2f2Yuriw"></script>
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCwYMYdSWzHCsvWPK1o1kE8DHBy2QjinSc",
-    authDomain: "okakoro-8d8eb.firebaseapp.com",
-    databaseURL: "https://okakoro-8d8eb-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "okakoro-8d8eb",
-  storageBucket: "okakoro-8d8eb.firebasestorage.app",
-  messagingSenderId: "923367505708",
-  appId: "1:923367505708:web:cd6892926f2797eb32f689"
+            apiKey: "AIzaSyCwYMYdSWzHCsvWPK1o1kE8DHBy2QjinSc",
+            authDomain: "okakoro-8d8eb.firebaseapp.com",
+            databaseURL: "https://okakoro-8d8eb-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "okakoro-8d8eb",
+            storageBucket: "okakoro-8d8eb.firebasestorage.app",
+            messagingSenderId: "923367505708",
+            appId: "1:923367505708:web:cd6892926f2797eb32f689"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let map, marker;
-    let currentLat = 0;
-    let currentLng = 0;
+    let map, marker, polyline;
+    let pathCoords = [];
 
-    function initMap(lat, lng) {
-      const pos = { lat, lng };
+    function initMap(centerLat, centerLng) {
+      const pos = { lat: centerLat, lng: centerLng };
       map = new google.maps.Map(document.getElementById("map"), {
         zoom: 18,
         center: pos
@@ -130,13 +125,21 @@
         animation: google.maps.Animation.DROP,
         title: "Ubicación actual"
       });
+      polyline = new google.maps.Polyline({
+        path: pathCoords,
+        geodesic: true,
+        strokeColor: "#FF0000",
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+        map: map
+      });
     }
 
     function actualizarUbicacion(lat, lng) {
-      currentLat = lat;
-      currentLng = lng;
-
       const pos = { lat, lng };
+      pathCoords.push(pos);
+      polyline.setPath(pathCoords);
+
       marker.setPosition(pos);
       map.setCenter(pos);
       document.getElementById("lat").textContent = lat.toFixed(6);
@@ -149,17 +152,36 @@
       document.getElementById("wazeLink").href = wazeURL;
     }
 
+    // Dibuja el historial completo
+    function cargarHistorial() {
+      db.ref("historial").once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+        Object.values(data).forEach(punto => {
+          if (punto.latitud && punto.longitud) {
+            pathCoords.push({ lat: parseFloat(punto.latitud), lng: parseFloat(punto.longitud) });
+          }
+        });
+        if (pathCoords.length > 0) {
+          const ultPos = pathCoords[pathCoords.length - 1];
+          initMap(ultPos.lat, ultPos.lng);
+          polyline.setPath(pathCoords);
+          marker.setPosition(ultPos);
+          map.setCenter(ultPos);
+          document.getElementById("lat").textContent = ultPos.lat.toFixed(6);
+          document.getElementById("lng").textContent = ultPos.lng.toFixed(6);
+        }
+      });
+    }
+
+    cargarHistorial();
+
     db.ref("gps").on("value", snapshot => {
       const data = snapshot.val();
       if (data && data.latitud && data.longitud) {
         const lat = parseFloat(data.latitud);
         const lng = parseFloat(data.longitud);
-
-        if (!map) {
-          initMap(lat, lng);
-        } else {
-          actualizarUbicacion(lat, lng);
-        }
+        actualizarUbicacion(lat, lng);
       }
     });
 
@@ -187,3 +209,17 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
