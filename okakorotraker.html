@@ -181,16 +181,21 @@
         .catch(err => console.error("❌ Error:", err));
     }
 
-    function borrarHistorial() {
-      if (confirm("¿Estás seguro de borrar todo el historial?")) {
-        db.ref("historial").remove()
-          .then(() => {
-            alert("Historial borrado correctamente.");
-            location.reload();
-          })
-          .catch(err => console.error("❌ Error al borrar:", err));
-      }
-    }
+function borrarHistorial() {
+  if (confirm("¿Estás seguro de borrar todo el historial?")) {
+    db.ref("historial").remove()
+      .then(() => {
+        alert("Historial borrado correctamente.");
+        // Limpiar línea del mapa
+        pathCoords = [];
+        if (polyline) {
+          polyline.setPath([]);
+        }
+      })
+      .catch(err => console.error("❌ Error al borrar:", err));
+  }
+}
+
 
     function toggleHistorial() {
       historialActivoWeb = document.getElementById('historialSwitch').checked;
