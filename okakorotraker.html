@@ -92,6 +92,14 @@
     </div>
   </div>
 
+  <div class="text-center mt-4">
+  <h5>Opciones de Historial:</h5>
+  <button class="btn btn-danger me-2" onclick="borrarHistorial()">🗑️ Borrar Historial</button>
+  <button class="btn btn-warning" onclick="toggleHistorial()">⏸️ Activar / Detener Historial</button>
+  <p class="mt-2"><span id="estadoHistorial">Cargando estado...</span></p>
+</div>
+
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBukTLs8YHWCtf6lZuLixcFi5T2f2Yuriw"></script>
@@ -206,6 +214,40 @@
         .then(() => console.log("✅ Relay: " + comando))
         .catch(err => console.error("❌ Error:", err));
     }
+
+    function borrarHistorial() {
+  if (confirm("¿Estás seguro de borrar todo el historial?")) {
+    db.ref("historial").remove()
+      .then(() => {
+        alert("Historial borrado correctamente.");
+        location.reload();
+      })
+      .catch(err => console.error("❌ Error al borrar:", err));
+  }
+}
+
+function toggleHistorial() {
+  db.ref("historial_activo").once("value").then(snapshot => {
+    const estadoActual = snapshot.val();
+    const nuevoEstado = !estadoActual;
+    db.ref("historial_activo").set(nuevoEstado)
+      .then(() => {
+        alert(nuevoEstado ? "Historial ACTIVADO." : "Historial DETENIDO.");
+      })
+      .catch(err => console.error("❌ Error al actualizar historial:", err));
+  });
+}
+
+function escucharEstadoHistorial() {
+  db.ref("historial_activo").on("value", snapshot => {
+    const estado = snapshot.val();
+    const texto = estado ? "✅ Historial ACTIVO" : "⏸️ Historial DETENIDO";
+    document.getElementById("estadoHistorial").textContent = texto;
+  });
+}
+
+escucharEstadoHistorial();
+
   </script>
 </body>
 </html>
