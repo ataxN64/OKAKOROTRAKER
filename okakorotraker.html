@@ -127,29 +127,38 @@
         `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
     }
 
-    function cargarHistorial() {
-      db.ref("historial").once("value").then(snapshot => {
-        const data = snapshot.val();
-        if (!data) return;
-        Object.values(data).forEach(punto => {
-          if (punto.latitud && punto.longitud) {
-            pathCoords.push({
-              lat: parseFloat(punto.latitud),
-              lng: parseFloat(punto.longitud)
-            });
-          }
-        });
-        if (pathCoords.length > 0) {
-          const ultPos = pathCoords[pathCoords.length - 1];
-          initMap(ultPos.lat, ultPos.lng);
-          polyline.setPath(pathCoords);
-          marker.setPosition(ultPos);
-          map.setCenter(ultPos);
-          document.getElementById("lat").textContent = ultPos.lat.toFixed(6);
-          document.getElementById("lng").textContent = ultPos.lng.toFixed(6);
+function cargarHistorial() {
+  db.ref("historial").once("value").then(snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      Object.values(data).forEach(punto => {
+        if (punto.latitud && punto.longitud) {
+          pathCoords.push({
+            lat: parseFloat(punto.latitud),
+            lng: parseFloat(punto.longitud)
+          });
         }
       });
+      if (pathCoords.length > 0) {
+        const ultPos = pathCoords[pathCoords.length - 1];
+        initMap(ultPos.lat, ultPos.lng);
+        polyline.setPath(pathCoords);
+        marker.setPosition(ultPos);
+        map.setCenter(ultPos);
+        document.getElementById("lat").textContent = ultPos.lat.toFixed(6);
+        document.getElementById("lng").textContent = ultPos.lng.toFixed(6);
+        return;
+      }
     }
+    // Si no hay historial, usa la última ubicación actual para crear el mapa
+    db.ref("gps").once("value").then(snapshot => {
+      const gps = snapshot.val();
+      if (gps && gps.latitud && gps.longitud) {
+        initMap(parseFloat(gps.latitud), parseFloat(gps.longitud));
+      }
+    });
+  });
+}
 
     cargarHistorial();
 
