@@ -186,10 +186,14 @@ function borrarHistorial() {
     db.ref("historial").remove()
       .then(() => {
         alert("Historial borrado correctamente.");
-        // Limpiar línea del mapa
+        // Limpiar polilínea del recorrido
         pathCoords = [];
         if (polyline) {
           polyline.setPath([]);
+        }
+        // Volver a centrar el mapa en la última ubicación actual
+        if (marker && map) {
+          map.setCenter(marker.getPosition());
         }
       })
       .catch(err => console.error("❌ Error al borrar:", err));
